@@ -1,23 +1,14 @@
 
-// const socket = io.connect()
-
-
-
-
-
-export function calculoDeNumeros(){
-    let suma = 0;
-    for (let i = 0; i < 100000; i++) {
-        suma += i;
+process.on("message", numeros =>{
+    const resultado = {}
+    for(let i = 0; i < numeros; i++){
+        const random = Math.floor(Math.random() * 1000)
+        if(!resultado[random]){
+            resultado[random] = 0
+        }
+        resultado[random]++
     }
-    return suma;
-    
-}
+    process.send(resultado)
+})
 
-process.on('message', msg => {
-    console.log('mensaje desde el procesos principal:\n');
-    console.log(msg);
-
-    const calculoTotal = calculoDeNumeros()
-    process.send(`resultado de suma en segundo plano ${calculoTotal}`)
-});
+process.send("finalizado")

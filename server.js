@@ -4,7 +4,7 @@
 import express from "express"
 import session from "express-session"
 import exphbs from 'express-handlebars'
-import path from 'path'
+import path, { resolve } from 'path'
 import bcrypt from 'bcrypt'
 
 import dotenv from "dotenv"
@@ -244,25 +244,28 @@ app.get('/info', (req, res) => {
 })
 
 
-
-
-
-const forkedProcess = fork('./src/scripts/calculoDeNumeros.js')
-
-app.get('/randoms', (req,res) => {
-    
-    const numeros = req.query.numeros
-    
-    forkedProcess.send("Se inicia el calculo")
-    forkedProcess.on("message", msg =>{
-        console.log("Mensaje desde el proceso secundario")
-        console.log(msg)
+function calcular(numero){
+    return new Promise((res,rej)=>{
+        const forkedProcess = fork('./src/scripts/calculoDeNumeros.js')
+        forkedProcess.on("message", (msg)=>{
+            if(msg == "finalizado"){
+                forkedProcess.send(numero)
+            }
+            else{
+                res(msg)
+            }
+        })
     })
-    res.send("Calculando en segundo plano")
-    
+}
 
-    console.log(error)
+
+
+app.get('/randoms', async (req,res) => {
     
+    const { numeros = 100000000 } = req.query
+    
+    const resultado = await calcular(numeros)
+    res.send(resultado)
 })
 
 
